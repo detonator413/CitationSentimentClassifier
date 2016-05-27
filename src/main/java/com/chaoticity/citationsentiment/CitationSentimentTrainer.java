@@ -4,7 +4,6 @@
  */
 package com.chaoticity.citationsentiment;
 
-import weka.classifiers.Evaluation;
 import weka.classifiers.functions.LibSVM;
 import weka.classifiers.meta.FilteredClassifier;
 import weka.core.Instances;
@@ -13,14 +12,9 @@ import weka.core.converters.ConverterUtils;
 import weka.core.tokenizers.NGramTokenizer;
 import weka.core.tokenizers.WordTokenizer;
 import weka.filters.Filter;
+import weka.filters.MultiFilter;
 import weka.filters.unsupervised.attribute.StringToWordVector;
 
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutput;
-import java.io.ObjectOutputStream;
-import java.util.Arrays;
-
-import static com.chaoticity.citationsentiment.CitationSentimentTester.transformData;
 
 /**
  * Code and data for citation sentiment classification reported in http://www.aclweb.org/anthology/P11-3015
@@ -54,7 +48,8 @@ public class CitationSentimentTrainer {
         WordTokenizer whitespaceTokenizer = new WordTokenizer();
         whitespaceTokenizer.setDelimiters(" ");
         unigramFilter.setTokenizer(whitespaceTokenizer);
-        data = Filter.useFilter(data,unigramFilter);
+
+//        data = Filter.useFilter(data,unigramFilter);
 
         // make trigrams from citation sentences
         StringToWordVector trigramFilter = new StringToWordVector();
@@ -65,25 +60,32 @@ public class CitationSentimentTrainer {
         tokenizer.setNGramMinSize(1);
         tokenizer.setNGramMaxSize(3);
         trigramFilter.setTokenizer(tokenizer);
-        data = Filter.useFilter(data,trigramFilter);
 
+
+//        data = Filter.useFilter(data,trigramFilter);
 
         LibSVM svm = new LibSVM();
         svm.setCost(1000);
 
         FilteredClassifier classifier  = new FilteredClassifier();
         classifier.setClassifier(svm);
+        MultiFilter multiFilter = new MultiFilter();
+
+        multiFilter.setFilters(new Filter[]{unigramFilter, trigramFilter});
+
+        classifier.setFilter(multiFilter);
+
         classifier.buildClassifier(data);
         SerializationHelper.write("/tmp/citmodel.dat", classifier);
 
         // EVALUATING A SUBSET OF TEST DATA
-        ConverterUtils.DataSource testDataSource = new ConverterUtils.DataSource("example.arff");
-        Instances testData = transformData(testDataSource.getDataSet());
-
-        for (int i = 0; i < testData.numInstances(); i++) {
-            double[] res = classifier.distributionForInstance(testData.instance(i));
-            System.out.println(Arrays.toString(res));
-        }
+//        ConverterUtils.DataSource testDataSource = new ConverterUtils.DataSource("example.arff");
+//        Instances testData = transformData(testDataSource.getDataSet());
+//
+//        for (int i = 0; i < testData.numInstances(); i++) {
+//            double[] res = classifier.distributionForInstance(testData.instance(i));
+//            System.out.println(Arrays.toString(res));
+//        }
 
     }
 

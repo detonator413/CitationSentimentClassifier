@@ -4,15 +4,10 @@
  */
 package com.chaoticity.citationsentiment;
 
-import weka.classifiers.functions.LibSVM;
 import weka.classifiers.meta.FilteredClassifier;
 import weka.core.Instances;
 import weka.core.SerializationHelper;
 import weka.core.converters.ConverterUtils;
-import weka.core.tokenizers.NGramTokenizer;
-import weka.core.tokenizers.WordTokenizer;
-import weka.filters.Filter;
-import weka.filters.unsupervised.attribute.StringToWordVector;
 
 import java.util.Arrays;
 
@@ -32,43 +27,21 @@ public class CitationSentimentTester {
     public static void main(String[] args) throws Exception {
         FilteredClassifier svm = (FilteredClassifier) SerializationHelper.read("/tmp/citmodel.dat");
         ConverterUtils.DataSource source = new ConverterUtils.DataSource("example.arff");
-        Instances data = transformData(source.getDataSet());
+        Instances data = source.getDataSet();
+
+        data.setClassIndex(0);
+        data.deleteAttributeAt(1);
+        data.deleteAttributeAt(2);
 
         for (int i = 0; i < data.numInstances(); i++) {
             double[] res = svm.distributionForInstance(data.instance(i));
             System.out.println(Arrays.toString(res));
+            System.out.println(svm.classifyInstance(data.instance(i)));
         }
 
 
     }
 
-    public static Instances transformData(Instances data) throws Exception {
-        data.deleteAttributeAt(0);
-        data.deleteAttributeAt(0);
-        data.deleteAttributeAt(1);
-
-        // split dependencies on space
-        StringToWordVector unigramFilter = new StringToWordVector();
-        unigramFilter.setInputFormat(data);
-        unigramFilter.setIDFTransform(true);
-        unigramFilter.setAttributeIndices("2");
-        WordTokenizer whitespaceTokenizer = new WordTokenizer();
-        whitespaceTokenizer.setDelimiters(" ");
-        unigramFilter.setTokenizer(whitespaceTokenizer);
-        data = Filter.useFilter(data,unigramFilter);
-
-        // make trigrams from citation sentences
-        StringToWordVector trigramFilter = new StringToWordVector();
-        trigramFilter.setInputFormat(data);
-        trigramFilter.setIDFTransform(true);
-        trigramFilter.setAttributeIndices("1");
-        NGramTokenizer tokenizer = new NGramTokenizer();
-        tokenizer.setNGramMinSize(1);
-        tokenizer.setNGramMaxSize(3);
-        trigramFilter.setTokenizer(tokenizer);
-        data = Filter.useFilter(data,trigramFilter);
-        return data;
-    }
 
 
 }
