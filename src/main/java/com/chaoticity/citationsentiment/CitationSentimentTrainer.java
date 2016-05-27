@@ -76,7 +76,7 @@ public class CitationSentimentTrainer {
         classifier.buildClassifier(data);
         SerializationHelper.write("/tmp/citmodel.dat", classifier);
 
-
+        // EVALUATING A SUBSET OF TEST DATA
         ConverterUtils.DataSource testDataSource = new ConverterUtils.DataSource("example.arff");
         Instances testData = transformData(testDataSource.getDataSet());
 
