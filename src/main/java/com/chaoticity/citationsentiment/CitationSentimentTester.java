@@ -44,6 +44,8 @@ public class CitationSentimentTester {
 
     public static Instances transformData(Instances data) throws Exception {
         data.deleteAttributeAt(0);
+        data.deleteAttributeAt(0);
+        data.deleteAttributeAt(1);
 
         // split dependencies on space
         StringToWordVector unigramFilter = new StringToWordVector();
